@@ -45,3 +45,43 @@ class WindAnalyzer:
 
         # Garantir que a velocidade seja maior ou igual a zero
         self.dados = self.dados[self.dados['velocidade'] >= 0]
+    
+    def calcular_estatisticas(self, estacao: str = None) -> Dict:
+        """
+        Calcula estatísticas descritivas para os dados de vento.
+        
+        Args:
+            estacao (str): Nome da estação para filtrar (None para todas)
+            
+        Returns:
+            Dict: Dicionário com estatísticas calculadas
+        """
+        dados = self.dados if estacao is None else self.dados[self.dados['estacao'] == estacao]
+
+        estatisticas = {
+            'media_velocidade': dados['velocidade'].mean(),
+            'max_velocidade': dados['velocidade'].max(),
+            'min_velocidade': dados['velocidade'].min(),
+            'desvio_velocidade': dados['velocidade'].std(),
+            'media_direcao': self._calcular_direcao_media(dados['direcao']),
+            'frequencia_calmar': (dados['velocidade'] < 0.5).mean(),
+            'turbulencia': dados['velocidade'].std() /  dados['velocidade'].mean()
+        }
+
+        return estatisticas
+    
+    def _calcular_direcao_media(self, direcoes: pd.Series) -> float:
+        """
+        Calcula a direção média considerando a circularidade dos dados.
+        
+        Args:
+            direcoes (pd.Series): Série com direções em graus
+            
+        Returns:
+            float: Direção média em graus (0-360)
+        """
+        radianos = np.deg2rad(direcoes)
+        media_sen = np.sin(radianos).mean()
+        media_cos = np.cos(radianos).mean()
+        media_rad = np.arctan2(media_sen, media_cos)
+        return (np.rad2deg(media_rad) + 360) % 360
