@@ -149,3 +149,65 @@ class WindAnalyzer:
             potencia_total += potencia_media
         
         return potencia_total
+
+    def plotar_rosa_ventos(self, estacao: str = None, setores: int = 16, 
+                        figsize: Tuple = (10,10), titulo: str = None) -> plt.Figure:
+        """
+        Gera uma rosa dos ventos polar para os dados.
+        
+        Args:
+            estacao (str): Nome da estação para filtrar (None para todas)
+            setores (int): Número de setores direcionais (default: 16)
+            figsize (Tuple): Tamanho da figura (width, height)
+            titulo (str): Título do gráfico
+            
+        Returns:
+            plt.Figure: Figura matplotlib com a rosa dos ventos
+        """
+        dados = self.dados if estacao is None else self.dados[self.dados['estacao'] == estacao]
+
+        #Calcular frequencias direcionais
+        limites_setores = np.linspace(0, 360, setores + 1)
+        direcoes_centro = (limites_setores[:,-1] + limites_setores[1:]) / 2
+        frequencias, _ =  np.histogram(dados['direcao'], bins=limites_setores, density=True)
+
+        # Calcular velocidades médias por setor
+        velocidades_medias = []
+        for i in range(setores):
+            if i == setores - 1:
+                mascara = (dados['direcao'] >= limites_setores[i]) & (dados['direcao'] <= limites_setores[i+1])
+            else:
+                mascara = (dados['direcao'] >= limites_setores[i]) & (dados['direcao'] < limites_setores[i+1])
+            velocidades_medias.append(dados[mascara]['velocidade'].mean())
+        
+        # Configurar plot polar
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111, projection='polar')
+
+        # Converter oara radianos
+        theta = np.deg2rad(direcoes_centro)
+        width = np.deg2rad(360 / setores)
+
+        #Plotar barras com cores por velocidade
+        bars = ax.bar(theta, frequencias * 100, width=width, bottom=0, 
+                    color=plt.cm.viridis(np.array(velocidades_medias) / max(velocidades_medias)))
+
+        # Personalizar gráficos
+        ax.set_theta_zero_location('N')
+        ax.set_theta_direction(-1)
+        ax.set_rlabel_position(0)
+       
+        # Adicionar titulo e legenda
+        titulo = titulo or f"Rosa dos Ventos - {estacao if estacao else 'Todas Estações'}"
+        plt.title(titulo, y=1.1)
+
+        # Adicionar barra de cores para velocidade
+        sm = plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=min(velocidades_medias), vmax=max(velocidades_medias)))
+        sm._A = []
+        cbar = plt.colorbar(sm, ax=ax, pad=0.1)
+        cbar.set_label("Velocidade (m/s)")
+
+        return fig
+
+
+    
