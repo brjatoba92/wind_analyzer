@@ -209,5 +209,67 @@ class WindAnalyzer:
 
         return fig
 
+    def gerar_relatorio(self, estacao: str, arquivo_saida: str = None) -> str:
+        """
+        Gera um relatório técnico completo para uma estação.
+        
+        Args:
+            estacao (str): Nome da estação
+            arquivo_saida (str): Caminho para salvar o relatório (None para não salvar)
+            
+        Returns:
+            str: Texto do relatório gerado
+        """
+        if estacao not in self.estacoes:
+            raise ValueError(f"A estação {estacao} não foi encontrada na base de dados.")
+        
+        # Calcular todas as estatisticas necessarias
+        estatisticas = self.calcular_estatisticas(estacao)
+        self.ajuste_distribuicao_weibull(estacao)
+        potencial = self.calcular_potencial_eolico(estacao)
 
-    
+        # Gerar texto do relatório
+        relatorio = f"""
+        RELATÓRIO TÉCNICO - ANÁLISE EÓLICA
+        Estação: {estacao}
+        Período: {self.dados['data'].min().date()} a {self.dados['data'].max().date()}
+        =============================================
+        
+        1. ESTATÍSTICAS BÁSICAS:
+        - Velocidade média: {estatisticas['media_velocidade']:.2f} m/s
+        - Velocidade máxima: {estatisticas['max_velocidade']:.2f} m/s
+        - Direção predominante: {estatisticas['media_direcao']:.1f}°
+        - Frequência de calmaria: {estatisticas['frequencia_calmar']*100:.1f}%
+        - Intensidade de turbulência: {estatisticas['turbulencia']:.3f}
+        
+        2. DISTRIBUIÇÃO DE WEIBULL:
+        """
+        
+        # Adicionar parâmetros de Weibull por setor
+        for setor, params in self.parametros_weibull[estacao].items():
+            relatorio += f"\n   - {setor}: k={params['k']:.2f}, c={params['c']:.2f} m/s, freq={params['frequencia']*100:.1f}%"
+        
+        relatorio += f"""
+        
+        3. POTENCIAL EÓLICO:
+        - Potencial teórico: {potencial:.2f} W/m²
+        - Classificação de vento: {self._classificar_potencial(potencial)}
+
+        4. RECOMENDAÇÕES:
+        """
+        # Adicionar recomendações baseadas na análise
+        if potencial > 400:
+            relatorio += "\n- Local com excelente potencial eólico, recomendado para instalação de turbinas."
+        elif potencial > 300:
+            relatorio += "\n- Local com bom potencial eólico, viável para instalação com turbinas adequadas."
+        else:
+            relatorio += "\n- Local com potencial eólico limitado, recomenda-se estudo mais detalhado."
+        
+        # Salvar em arquivo se especificado
+        if arquivo_saida:
+            with open(arquivo_saida, 'w') as f:
+                f.write(relatorio)
+        
+        return relatorio
+
+
