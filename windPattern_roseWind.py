@@ -85,3 +85,43 @@ class WindAnalyzer:
         media_cos = np.cos(radianos).mean()
         media_rad = np.arctan2(media_sen, media_cos)
         return (np.rad2deg(media_rad) + 360) % 360
+    
+    def ajuste_distribuicao_weibull(self, estacao: str, setores: int = 16) -> Dict:
+        """
+        Ajusta distribuição de Weibull para os dados de velocidade do vento.
+        
+        Args:
+            estacao (str): Nome da estação para filtrar (None para todas)
+            setores (int): Número de setores direcionais (default: 16)
+            
+        Returns:
+            Dict: Parâmetros de Weibull (k, c) por setor direcional
+        """
+        dados = self.dados if estacao is None else self.dados[self.dados['estacao'] == estacao]
+        
+        # Calcular limites dos setores
+        limites_setores = np.linspace(0, 360, setores + 1)
+
+        parametros = ()
+        for i in range(setores):
+            limite_inf = limites_setores[i]
+            limite_sup = limites_setores[i+1]
+        
+            # Filtrar dados do setor
+            if i == setores - 1:
+                mascara = (dados['direcao'] >= limite_inf) & (dados['direcao'] <= limite_sup)
+            else:
+                mascara = (dados['direcao'] >= limite_inf) & (dados['direcao'] < limite_sup)
+        
+            dados_setor = dados[mascara]['velocidade']
+
+            # Ajustar Weibull se houver dados insuficientes
+            if len(dados_setor) > 10:
+                shape, loc, scale = weibull_min.fit(dados_setor, floc=0)
+                parametros[f'setor_{i}'] =  {'k': shape, 'c': scale, 'frequencia': len(dados_setor)/len(dados)}
+        
+        # Armazenar parametros para uso posterior
+        chave = estacao if estacao else 'global'
+        self.parametros_weibull[chave] = parametros
+
+        return parametros
