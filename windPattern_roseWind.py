@@ -125,3 +125,27 @@ class WindAnalyzer:
         self.parametros_weibull[chave] = parametros
 
         return parametros
+
+    def calcular_potencial_eolico(self, estacao: str, densidade_ar: float = 1.225) -> float:
+        """
+        Calcula o potencial eólico teórico para uma estação.
+        
+        Args:
+            estacao (str): Nome da estação
+            densidade_ar (float): Densidade do ar em kg/m³ (default: 1.225)
+            
+        Returns:
+            float: Potencial eólico em W/m²
+        """
+        if estacao not in self.parametros_weibull:
+            self.ajustar_distribuicao_weibull(estacao)
+        parametros = self.parametros_weibull[estacao]
+        potencia_total = 0.0
+
+        for setor, vals in parametros.items():
+            k, c, freq = vals['k'], vals['c'], vals['frequencia']
+            # Fator de correção para potência média
+            potencia_media = 0.5 * densidade_ar * (c**3) * (1+3/k) * freq
+            potencia_total += potencia_media
+        
+        return potencia_total
