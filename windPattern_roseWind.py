@@ -271,5 +271,57 @@ class WindAnalyzer:
                 f.write(relatorio)
         
         return relatorio
+    
+    def _classificar_potencial(self, potencial: float) -> str:
+        """
+        Classifica o potencial eólico em categorias.
+        
+        Args:
+            potencial (float): Potencial eólico em W/m²
+        
+        Returns:
+            str: Categoria do potencial eólico
+        """
+        if potencial > 500:
+            return "Excepcional (Classe 7)"
+        elif potencial > 400:
+            return "Excelente (Classe 6)"
+        elif potencial > 300:
+            return "Bom (Classe 5)"
+        elif potencial > 200:
+            return "Moderado (Classe 4)"
+        else:
+            return "Limitado"
+    
+    def analisar_cissalhamento(self, estacao: str, alturas: List[float]) -> Dict:
+        """
+        Analisa o cissalhamento de uma estação.
+        
+        Args:
+            estacao (str): Nome da estação
+            alturas (List[float]): Listagem de alturas para o cissalhamento
+        
+        Returns:
+            Dict: Dicionário com informações sobre o cissalhamento
+        """
+        # Esta implementação assume que os dados contêm medições em múltiplas alturas
+        # Na prática, você precisaria adaptar para sua estrutura de dados específica
+        resultados = {}
 
+        # Calcular perfil de vento e expoente de cisalhamento
+        velocidades_medias = []
+        for altura in alturas:
+            mascara = (self.dados['estacao'] == estacao) & (self.dados['altura'] == altura)
+            velocidades_medias.append(self.dados[mascara]['velocidade'].mean())
+        
+        # Ajustar lei de potência (v2/v1 = (h2/h1)^alpha)
+        try:
+            alpha = np.log(velocidades_medias[1] / velocidades_medias[0]) / np.log(alturas[1] / alturas[0])
+            resultados['expoente_cissalhamento'] = alpha
+            resultados['perfil_vertical'] = dict(zip(alturas, velocidades_medias))
+        except:
+            resultados['erro'] = "Não foi possível calcular o cisalhamento - dados insuficientes"
+        
+        return resultados
+        
 
