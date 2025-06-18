@@ -7,6 +7,7 @@ import mpl_toolkits.axisartist.grid_finder as gf
 import mpl_toolkits.axisartist.floating_axes as fa
 from scipy.stats import weibull_min
 from typing import Dict, List, Optional, Tuple
+import os
 
 class WindAnalyzer:
     """
@@ -86,7 +87,7 @@ class WindAnalyzer:
         media_rad = np.arctan2(media_sen, media_cos)
         return (np.rad2deg(media_rad) + 360) % 360
     
-    def ajuste_distribuicao_weibull(self, estacao: str, setores: int = 16) -> Dict:
+    def ajustar_distribuicao_weibull(self, estacao: str = None, setores: int = 16) -> Dict:
         """
         Ajusta distribuição de Weibull para os dados de velocidade do vento.
         
@@ -101,29 +102,29 @@ class WindAnalyzer:
         
         # Calcular limites dos setores
         limites_setores = np.linspace(0, 360, setores + 1)
-
-        parametros = ()
+        
+        parametros = {}
         for i in range(setores):
             limite_inf = limites_setores[i]
-            limite_sup = limites_setores[i+1]
-        
+            limite_sup = limites_setores[i + 1]
+            
             # Filtrar dados do setor
             if i == setores - 1:
                 mascara = (dados['direcao'] >= limite_inf) & (dados['direcao'] <= limite_sup)
             else:
                 mascara = (dados['direcao'] >= limite_inf) & (dados['direcao'] < limite_sup)
-        
+                
             dados_setor = dados[mascara]['velocidade']
-
-            # Ajustar Weibull se houver dados insuficientes
+            
+            # Ajustar Weibull se houver dados suficientes
             if len(dados_setor) > 10:
                 shape, loc, scale = weibull_min.fit(dados_setor, floc=0)
-                parametros[f'setor_{i}'] =  {'k': shape, 'c': scale, 'frequencia': len(dados_setor)/len(dados)}
+                parametros[f'setor_{i}'] = {'k': shape, 'c': scale, 'frequencia': len(dados_setor)/len(dados)}
         
-        # Armazenar parametros para uso posterior
+        # Armazenar parâmetros para uso posterior
         chave = estacao if estacao else 'global'
         self.parametros_weibull[chave] = parametros
-
+        
         return parametros
 
     def calcular_potencial_eolico(self, estacao: str, densidade_ar: float = 1.225) -> float:
@@ -168,7 +169,7 @@ class WindAnalyzer:
 
         #Calcular frequencias direcionais
         limites_setores = np.linspace(0, 360, setores + 1)
-        direcoes_centro = (limites_setores[:,-1] + limites_setores[1:]) / 2
+        direcoes_centro = (limites_setores[:-1] + limites_setores[1:]) / 2
         frequencias, _ =  np.histogram(dados['direcao'], bins=limites_setores, density=True)
 
         # Calcular velocidades médias por setor
@@ -225,7 +226,7 @@ class WindAnalyzer:
         
         # Calcular todas as estatisticas necessarias
         estatisticas = self.calcular_estatisticas(estacao)
-        self.ajuste_distribuicao_weibull(estacao)
+        self.ajustar_distribuicao_weibull(estacao)
         potencial = self.calcular_potencial_eolico(estacao)
 
         # Gerar texto do relatório
@@ -324,4 +325,51 @@ class WindAnalyzer:
         
         return resultados
         
+if __name__ == '__main__':
+    #criar dados de exemplo
+    np.random.seed(42)
+    n = 1000
+    dados = pd.DataFrame({
+        'estacao': ['Estacao_A'] * n,
+        'data': pd.date_range(start='2023-01-01', periods=n, freq='H'),
+        'direcao': np.random.vonmises(0, 2, n) * 180 / np.pi % 360,
+        'velocidade': weibull_min.rvs(2, loc=0, scale=8, size=n)
+    })
+    # Adicionar dados de altura para exemplo de cisalhamento
+    dados['altura'] = np.random.choice([10,50,100], size=n)
 
+    # Inicializar analisador
+    analisador = WindAnalyzer(dados)
+
+    # Definir pastas de saída
+    pasta_base = "resultados"
+    pasta_graficos = os.path.join(pasta_base, "graficos")
+    pasta_estatisticas = os.path.join(pasta_base, "estatisticas")
+    pasta_relatorios = os.path.join(pasta_base, "relatorios")
+    pasta_cissalhamento = os.path.join(pasta_base, "cissalhamento")
+
+    for pasta in [pasta_graficos, pasta_estatisticas, pasta_relatorios, pasta_cissalhamento]:
+        os.makedirs(pasta, exist_ok=True)
+
+    # Gerar estatísticas e salvar em arquivo
+    estatisticas = analisador.calcular_estatisticas('Estacao_A')
+    with open(os.path.join(pasta_estatisticas, 'estatisticas.txt'), 'w') as f:
+        for k, v in estatisticas.items():
+            f.write(f"{k}: {v}\n")
+    print(estatisticas)
+
+    # Gerar e salvar rosa dos ventos
+    fig = analisador.plotar_rosa_ventos('Estacao_A')
+    fig.savefig(os.path.join(pasta_graficos, 'rosa_ventos.png'))
+    plt.close(fig)
+
+    # Gerar relatório e salvar na pasta
+    relatorio = analisador.gerar_relatorio('Estacao_A', os.path.join(pasta_relatorios, 'relatorio.txt'))
+    print(relatorio)
+
+    # Analise de cissalhamento
+    resultados = analisador.analisar_cissalhamento('Estacao_A', [10, 50, 100])
+    with open(os.path.join(pasta_cissalhamento, 'cissalhamento.txt'), 'w') as f:
+        for k, v in resultados.items():
+            f.write(f"{k}: {v}\n")
+    print(resultados)
