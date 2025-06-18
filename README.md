@@ -51,6 +51,8 @@ O DataFrame de entrada deve conter as seguintes colunas:
 | velocidade | float     | Velocidade do vento em m/s                         |
 | altura     | float     | (Opcional) Altura da medição para cisalhamento     |
 
+---
+
 ## 📦 Como Usar
 
 ### Clone o repositório:
@@ -65,6 +67,8 @@ O DataFrame de entrada deve conter as seguintes colunas:
 ### Execute o script principal:
 
     python3 windPattern_roseWind.py
+
+---
 
 ## 📊 Exemplo de Saída
 
@@ -84,6 +88,7 @@ Relatório Técnico:
     Potencial teórico: 342.89 W/m²
     Classificação de vento: Bom (Classe 5)
 
+---
 
 ## 📈 Aplicações Possíveis
 
@@ -93,10 +98,14 @@ Relatório Técnico:
 
     Pesquisa científica em meteorologia e física ambiental
 
+---
+
 ## 🧪 Testes com Dados Sintéticos
 
     O script já contém um gerador de dados de exemplo baseado em distribuição Weibull e von Mises. 
     Isso permite testar a aplicação sem necessidade de dados reais iniciais.
+
+---
 
 ## ✅ TODO Futuro
 
@@ -104,11 +113,15 @@ Relatório Técnico:
     Interface web interativa com Dash ou Streamlit
     Integração com bancos de dados meteorológicos externos
 
+---
+
 ## 👤 Autor
 
     Bruno Jatobá
     Email: brunojatobadev@gmail.com
     Meteorologista e Desenvolvedor Python
+
+---
 
 ## 📄 Licença
 
