@@ -51,29 +51,29 @@ O DataFrame de entrada deve conter as seguintes colunas:
 | velocidade | float     | Velocidade do vento em m/s                         |
 | altura     | float     | (Opcional) Altura da medição para cisalhamento     |
 
-📦 Como Usar
+## 📦 Como Usar
 
-## Clone o repositório:
+### Clone o repositório:
 
     git clone https://github.com/brjatoba92/wind_analyzer.git
     cd wind_analyzer
 
-## Instale as dependências:
+### Instale as dependências:
 
     pip install -r requirements.txt
 
-## Execute o script principal:
+### Execute o script principal:
 
     python3 windPattern_roseWind.py
 
-📊 Exemplo de Saída
+## 📊 Exemplo de Saída
 
-## Estatísticas:
+### Estatísticas:
     media_velocidade: 6.52
     max_velocidade: 17.93
     ...
 
-## Rosa dos ventos:
+### Rosa dos ventos:
 
 Relatório Técnico:
 
@@ -85,7 +85,7 @@ Relatório Técnico:
     Classificação de vento: Bom (Classe 5)
 
 
-📈 Aplicações Possíveis
+## 📈 Aplicações Possíveis
 
     Avaliação de locais para usinas eólicas
 
@@ -93,22 +93,23 @@ Relatório Técnico:
 
     Pesquisa científica em meteorologia e física ambiental
 
-🧪 Testes com Dados Sintéticos
+## 🧪 Testes com Dados Sintéticos
 
-    O script já contém um gerador de dados de exemplo baseado em distribuição Weibull e von Mises. Isso permite testar a aplicação sem necessidade de dados reais iniciais.
+    O script já contém um gerador de dados de exemplo baseado em distribuição Weibull e von Mises. 
+    Isso permite testar a aplicação sem necessidade de dados reais iniciais.
 
-✅ TODO Futuro
+## ✅ TODO Futuro
 
     Exportar gráficos diretamente em PDF para relatórios
     Interface web interativa com Dash ou Streamlit
     Integração com bancos de dados meteorológicos externos
 
-👤 Autor
+## 👤 Autor
 
     Bruno Jatobá
     Email: brunojatobadev@gmail.com
     Meteorologista e Desenvolvedor Python
 
-📄 Licença
+## 📄 Licença
 
-Este projeto está licenciado sob a Licença MIT.
+    Este projeto está licenciado sob a Licença MIT.
