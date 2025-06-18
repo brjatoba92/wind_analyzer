@@ -1,0 +1,7 @@
+media_velocidade: 6.926325144017651
+max_velocidade: 22.232991013626517
+min_velocidade: 0.04434000791397998
+desvio_velocidade: 3.6386829494193265
+media_direcao: 359.5813111568447
+frequencia_calmar: 0.003
+turbulencia: 0.5253410536988867
